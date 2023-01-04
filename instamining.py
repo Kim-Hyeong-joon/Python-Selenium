@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import re
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -26,7 +27,7 @@ insta_password.send_keys(INSTAGRAM_PASSWORD)
 
 insta_password.send_keys(Keys.ENTER)
 
-WebDriverWait(browser, 10).until(
+WebDriverWait(browser, 15).until(
 EC.presence_of_element_located((By.CLASS_NAME, "_aa55")))
 
 main_hashtag = "#dog"
@@ -46,7 +47,7 @@ WebDriverWait(browser, 10).until(
 EC.presence_of_element_located((By.CSS_SELECTOR, ".x12dtdjy > div:nth-child(5)")))
 related_keywords = browser.find_elements_by_css_selector(".x12dtdjy > div")
 
-hashtags_n_posts = []
+counted_hashtags = []
 
 for related_keyword in related_keywords:
     keyword_text = browser.execute_script(
@@ -56,7 +57,19 @@ for related_keyword in related_keywords:
     """,
     related_keyword,
     )
-    hashtag_n_post = keyword_text.split("\n")
-    hashtags_n_posts.append(hashtag_n_post)
+    counted_hashtag = keyword_text.split("\n")
+    hashtag_name = counted_hashtag[0][1:]
+    post_count_float = float(re.findall("\d+.\d+",counted_hashtag[1].replace("게시물 ", ""))[0])
+    post_count_unit = counted_hashtag[1].strip()[-1]
+    post_count = 0
+    if post_count_unit == "억":
+        post_count = int(post_count_float * 100000000)
+    elif post_count_unit == "만":
+        post_count = int(post_count_float * 10000)
+    else:
+        pass
 
-print(hashtags_n_posts)
+    counted_hashtags.append((hashtag_name, post_count))
+
+print(counted_hashtags)
+browser.quit()
