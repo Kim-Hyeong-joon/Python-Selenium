@@ -3,26 +3,35 @@ import time
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
-browser = webdriver.Chrome(ChromeDriverManager().install())
+class ResponsiveTester:
 
-browser.get("https://nomadcoders.co")
-browser.maximize_window()
+    def __init__(self, urls):
+        self.browser = webdriver.Chrome(ChromeDriverManager().install())
+        self.browser.maximize_window()
+        self.urls = urls
+        self.max_width = self.browser.get_window_size().get("width")
+        self.max_height = self.browser.get_window_size().get("height")
+        self.inner_height = self.browser.execute_script("return window.innerHeight - 64")
+        self.sizes = [480, 960, 1366, 1920, self.max_width]
 
-max_width = browser.get_window_size().get("width")
-max_height = browser.get_window_size().get("height")
-inner_height = browser.execute_script("return window.innerHeight - 64")
+    def screenshot(self,url):
+        self.browser.get(url)
+        self.sizes.sort()
+        for size in self.sizes:
+            self.browser.set_window_size(size, self.max_height)
+            self.browser.execute_script("window.scrollTo(0,0)")
+            time.sleep(3)
+            scroll_size = self.browser.execute_script("return document.body.scrollHeight")
+            total_sections = ceil(scroll_size / self.inner_height)
+            for section in range(total_sections+1):
+                self.browser.execute_script(f"window.scrollTo(0, {(section) * self.inner_height})")
+                self.browser.save_screenshot(f"screenshots/{size}x{section}.png")
+                time.sleep(2)
 
-sizes = [480, 960, 1366, 1920, max_width]
+    def start(self):
+        for url in self.urls:
+            self.screenshot(url)
 
-sizes.sort()
 
-for size in sizes:
-    browser.set_window_size(size, max_height)
-    browser.execute_script("window.scrollTo(0,0)")
-    time.sleep(3)
-    scroll_size = browser.execute_script("return document.body.scrollHeight")
-    total_sections = ceil(scroll_size / inner_height)
-    for section in range(total_sections+1):
-        browser.execute_script(f"window.scrollTo(0, {(section) * inner_height})")
-        browser.save_screenshot(f"screenshots/{size}x{section}.png")
-        time.sleep(2)
+tester = ResponsiveTester(["https://nomadcoders.co","https://google.com"])
+tester.start()
