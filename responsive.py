@@ -1,3 +1,4 @@
+import os
 from math import ceil
 import time
 from selenium import webdriver
@@ -14,7 +15,7 @@ class ResponsiveTester:
         self.inner_height = self.browser.execute_script("return window.innerHeight - 64")
         self.sizes = [480, 960, 1366, 1920, self.max_width]
 
-    def screenshot(self,url):
+    def screenshot(self,url,dir_name):
         self.browser.get(url)
         self.sizes.sort()
         for size in self.sizes:
@@ -25,12 +26,18 @@ class ResponsiveTester:
             total_sections = ceil(scroll_size / self.inner_height)
             for section in range(total_sections+1):
                 self.browser.execute_script(f"window.scrollTo(0, {(section) * self.inner_height})")
-                self.browser.save_screenshot(f"screenshots/{size}x{section}.png")
+                self.browser.save_screenshot(f"screenshots/{dir_name}/{size}x{section}.png")
                 time.sleep(2)
 
     def start(self):
         for url in self.urls:
-            self.screenshot(url)
+            dir_name = url.split("https://")[1].split(".")[0]
+            try:
+                if not os.path.exists(dir_name):
+                    os.makedirs(f"screenshots/{dir_name}")
+            except:
+                pass
+            self.screenshot(url, dir_name)
 
 
 tester = ResponsiveTester(["https://nomadcoders.co","https://google.com"])
