@@ -2,12 +2,18 @@ import os
 from math import ceil
 import time
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 class ResponsiveTester:
 
     def __init__(self, urls):
-        self.browser = webdriver.Chrome(ChromeDriverManager().install())
+        self.options = Options()
+        self.options.add_experimental_option("detach", True)
+        #self.options.add_argument("--headless")
+        self.service = Service(ChromeDriverManager().install())
+        self.browser = webdriver.Chrome(service=self.service, options=self.options)
         self.browser.maximize_window()
         self.urls = urls
         self.max_width = self.browser.get_window_size().get("width")

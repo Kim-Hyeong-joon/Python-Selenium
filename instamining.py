@@ -7,12 +7,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 
 class InstaHashtagMinior:
     def __init__(self, initial_hashtag):
-        self.browser = webdriver.Chrome(ChromeDriverManager().install())
+        self.options = Options()
+        self.options.add_experimental_option("detach", True)
+        #self.options.add_argument("--headless")
+        self.service = Service(ChromeDriverManager().install())
+        self.browser = webdriver.Chrome(service=self.service, options=self.options)
         self.initial_hashtag = initial_hashtag
         self.counted_hashtags = []
         load_dotenv()
@@ -27,8 +33,8 @@ class InstaHashtagMinior:
         WebDriverWait(self.browser, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, "_ab3b")))
 
-        id_input = self.browser.find_element_by_name("username")
-        password_input = self.browser.find_element_by_name("password")
+        id_input = self.browser.find_element(By.NAME,"username")
+        password_input = self.browser.find_element(By.NAME,"password")
 
         id_input.send_keys(INSTAGRAM_ID)
         password_input.send_keys(INSTAGRAM_PASSWORD)
@@ -53,15 +59,15 @@ class InstaHashtagMinior:
         WebDriverWait(self.browser, 15).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "._a9-z > ._a9_1")))
 
-        button = self.browser.find_element_by_css_selector("._a9-z > ._a9_1")
+        button = self.browser.find_element(By.CSS_SELECTOR,"._a9-z > ._a9_1")
         button.click()
 
         self.browser.set_window_size(755, 800)
-        search_bar = self.browser.find_element_by_css_selector("._aawg > input")
+        search_bar = self.browser.find_element(By.CSS_SELECTOR,"._aawg > input")
         search_bar.send_keys(self.initial_hashtag)
         WebDriverWait(self.browser, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, ".x12dtdjy > div:nth-child(5)")))
-        related_keywords = self.browser.find_elements_by_css_selector(".x12dtdjy > div")
+        related_keywords = self.browser.find_elements(By.CSS_SELECTOR,".x12dtdjy > div")
 
         for related_keyword in related_keywords:
             keyword_text = self.browser.execute_script(
